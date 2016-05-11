@@ -84,12 +84,15 @@ int main(int argc, char** argv)
     while(1) {
 
 	//sem_wait(inputNumSem);
-	sem_post(waitClientSem);
+	//sem_post(waitClientSem);
 
+//	sem_wait(waitServerPrintSem);
+	
 	printf("Input Number(100 - 999) : ");
 	scanf("%d",&userNum);
 	ptr[0] = userNum;
 
+	sem_post(waitClientSem);
 	sem_wait(waitServerPrintSem);
 	printf("stirke : %d, ball : %d\n",ptr2[0], ptr2[1]);
 
