@@ -19,9 +19,13 @@ int main(int argc, char** argv)
 	int flag = PROT_WRITE | PROT_READ;
 
 	sem_t* startSem = sem_open("startSem", 0);
+	sem_t* clientNumSem = sem_open("clientNumSem", 0);
+	sem_t* test = sem_open("test", 0);
+
 	int semVal;
 
 	int userNum;
+
 
 	if((fd = open("input.txt", O_RDWR, 0666)) < 0) {
 	    perror("File open error");
@@ -43,17 +47,40 @@ int main(int argc, char** argv)
 	    exit(1);
 	}
 
+	sem_getvalue(test, &semVal);
+	printf("test: %d\n",semVal);
+
 	sem_getvalue(startSem, &semVal);
 	printf("startSem : %d\n",semVal);
 
-	printf("====================\n");
-	printf("     Hello \n");
+	
+	sem_getvalue(clientNumSem, &semVal);
+	printf("clientNumSem : %d\n",semVal);
+
+	if(!semVal) {
+	    printf("You can't enter this room! Two clients already using.\n");
+	    exit(1);
+	}
+
+	sem_wait(clientNumSem);
+	
+	sem_getvalue(clientNumSem, &semVal);
+	printf("clientNumSem : %d\n",semVal);
+
+	/* Starting game */
+
+	printf("======================\n");
+	printf("     Hello [%d]\n",getpid());
 	printf("     Game Start!!\n");
-	printf("====================\n");
+	printf("======================\n");
 
 	sem_post(startSem);
+
+	getchar();
 
 	
 	close(fd);
 	close(fd2);
+
+	sem_post(clientNumSem);
 }

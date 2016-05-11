@@ -26,7 +26,8 @@ int main(int argc, char** argv)
 	int* ptr2;
 
 	sem_t* startSem;
-
+	sem_t* clientNumSem;
+	sem_t* test;
 
 	int semVal;
 
@@ -46,9 +47,23 @@ int main(int argc, char** argv)
 
 	sem_unlink("startSem");
 	if((startSem = sem_open("startSem", O_CREAT, 0644, 0)) == SEM_FAILED) {
-	    perror("open");
+	    perror("Sem Failed");
 	    exit(1);
 	}
+
+	sem_unlink("clientNumSem");
+	if((clientNumSem = sem_open("clientNumSem", O_CREAT, 0644, 2)) == SEM_FAILED) {
+	    perror("Sem Failed");
+	    exit(1);
+	}
+	
+	sem_unlink("test");
+	if((test = sem_open("test", O_CREAT, 0644, 0)) == SEM_FAILED) {
+	    perror("Sem Failed");
+	    exit(1);
+	}
+
+
 
 	sem_getvalue(startSem, &semVal);
 	printf("startSem : %d\n",semVal);
@@ -59,12 +74,25 @@ int main(int argc, char** argv)
 	
 	sem_wait(startSem);
 	printf("Client hi\n");
+	
+	sem_getvalue(startSem, &semVal);
+	printf("startSem : %d\n",semVal);
 	sem_wait(startSem);
+	
 	printf("Client hi\n");
+	sem_getvalue(startSem, &semVal);
+	printf("startSem : %d\n",semVal);
 
 	printf("=========================\n");
 	printf("        Game Start       \n");
 	printf("=========================\n");
+
+	getchar();
+	
+	if((startSem = sem_open("startSem", O_CREAT, 0644, -100)) == SEM_FAILED) {
+	    perror("Sem Failed");
+	    exit(1);
+	}
 
 
 	sem_close(startSem);
