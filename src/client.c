@@ -73,7 +73,7 @@ int main(int argc, char** argv)
     /* Starting game */
 
     printf("======================\n");
-    printf("     Hello [%d]\n",getpid());
+    printf("     Hello %d\n",getpid());
     printf("     Game Start!!\n");
     printf("======================\n");
 
@@ -91,10 +91,10 @@ int main(int argc, char** argv)
 	printf("Input Number(100 - 999) : ");
 	scanf("%d",&userNum);
 	ptr[0] = userNum;
+	
 
 	sem_post(waitClientSem);
 	sem_wait(waitServerPrintSem);
-	printf("stirke : %d, ball : %d\n",ptr2[0], ptr2[1]);
 
 	if(ptr2[0] == 3) {
 	    printf("[%d] %d : %d strike, %d ball\n",getpid(), userNum, ptr2[0], ptr2[1]);
@@ -104,13 +104,11 @@ int main(int argc, char** argv)
 	    printf("[%d] %d : %d strike, %d ball\n",getpid(), userNum, ptr2[0], ptr2[1]);
 	}
 	
-	//sem_post(inputNumSem);
 	if(winCheck) {
 
 	}
+	//sem_post(inputNumSem);
     }
-
-    getchar();
 
 
     close(fd);
