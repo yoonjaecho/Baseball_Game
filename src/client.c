@@ -19,10 +19,12 @@ int main(int argc, char** argv)
     int flag = PROT_WRITE | PROT_READ;
 
     sem_t* startSem = sem_open("startSem", 0);
-    sem_t* clientNumSem = sem_open("clientNumSem", 0);
-    sem_t* inputNumSem = sem_open("inputNumSem", 0);
-    sem_t* waitClientSem = sem_open("waitClientSem", 0);
+    sem_t* twoClientSem = sem_open("twoClientSem", 0);
+    sem_t* aSem = sem_open("aSem", 0);
+    sem_t* bSem = sem_open("bSem", 0);
+    sem_t* clientInputSem = sem_open("clientInputSem", 0);
     sem_t* waitServerPrintSem = sem_open("waitServerPrintSem", 0);
+    sem_t* allReadyToStartSem = sem_open("allReadyToStartSem", 0);
 
     int semVal;
 
@@ -51,25 +53,21 @@ int main(int argc, char** argv)
 	exit(1);
     }
 
-/*
-    sem_getvalue(startSem, &semVal);
-    printf("startSem : %d\n",semVal);
+    /*
+       sem_getvalue(aSem, &semVal);
+       printf("aSem : %d\n",semVal);
+     */
 
 
-    sem_getvalue(clientNumSem, &semVal);
-    printf("clientNumSem : %d\n",semVal);
-    */
+    sem_getvalue(twoClientSem, &semVal);
 
     if(!semVal) {
-	printf("You can't enter this room! Two clients already using.\n");
+	printf("You can't enter this room! \n");
 	exit(1);
     }
 
-    sem_wait(clientNumSem);
-/*
-    sem_getvalue(clientNumSem, &semVal);
-    printf("clientNumSem : %d\n",semVal);
-*/
+    sem_wait(twoClientSem);
+
     /* Starting game */
 
     printf("======================\n");
@@ -78,41 +76,64 @@ int main(int argc, char** argv)
     printf("======================\n");
 
     sem_post(startSem);
+    sem_wait(allReadyToStartSem);
 
     winCheck = 0;
 
     while(1) {
 
-	//sem_wait(inputNumSem);
-	//sem_post(waitClientSem);
+	sem_getvalue(aSem, &semVal);
+	if(!semVal) {
+	    sem_wait(bSem);
 
-//	sem_wait(waitServerPrintSem);
-	
-	printf("Input Number(100 - 999) : ");
-	scanf("%d",&userNum);
-	ptr[0] = userNum;
-	
+	    /* print */
+	    if(ptr2[0] == 3) {
+		printf("[%d] %d : %d strike, %d ball\n",ptr2[2], ptr2[3], ptr2[0], ptr2[1]);
+		if(ptr2[3] == getpid()) {
+		    printf("You Win !!\n");
+		} else {
+		    printf("You Lose !!\n");
+		}
+		ptr2[4] = 1;
+	    } else {
+		printf("[%d] %d : %d strike, %d ball\n",ptr2[2], ptr2[3], ptr2[0], ptr2[1]);
+	    }
 
-	sem_post(waitClientSem);
-	sem_wait(waitServerPrintSem);
+	    sem_post(aSem);
+	    sem_post(aSem);
 
-	if(ptr2[0] == 3) {
-	    printf("[%d] %d : %d strike, %d ball\n",getpid(), userNum, ptr2[0], ptr2[1]);
-	    printf("You Win\n");
-	    winCheck++;
 	} else {
-	    printf("[%d] %d : %d strike, %d ball\n",getpid(), userNum, ptr2[0], ptr2[1]);
-	}
-	
-	if(winCheck) {
+
+	    sem_wait(aSem);
+
+	    /* input */
+	    printf("Input Number(100 - 999) : ");
+	    scanf("%d",&userNum);
+	    ptr[0] = userNum;
+	    ptr[1] = getpid();
+
+
+	    sem_post(clientInputSem);
+	    sem_wait(waitServerPrintSem);
+
+	    sem_post(bSem);
+
+	    /* print */
+	    if(ptr2[0] == 3) {
+		printf("[%d] %d : %d strike, %d ball\n",ptr2[2], ptr2[3], ptr2[0], ptr2[1]);
+	    } else {
+		printf("[%d] %d : %d strike, %d ball\n",ptr2[2], ptr2[3], ptr2[0], ptr2[1]);
+	    }
+
+	    sem_wait(aSem);
 
 	}
-	//sem_post(inputNumSem);
+
     }
 
 
     close(fd);
     close(fd2);
 
-    sem_post(clientNumSem);
+    sem_post(twoClientSem);
 }

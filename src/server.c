@@ -26,10 +26,12 @@ int main(int argc, char** argv)
     int* ptr2;
 
     sem_t* startSem;
-    sem_t* clientNumSem;
-    sem_t* inputNumSem;
-    sem_t* waitClientSem;
+    sem_t* twoClientSem;
+    sem_t* aSem;
+    sem_t* bSem;
+    sem_t* clientInputSem;
     sem_t* waitServerPrintSem;
+    sem_t* allReadyToStartSem;
 
     int semVal;
 
@@ -63,26 +65,38 @@ int main(int argc, char** argv)
 	exit(1);
     }
 
-    sem_unlink("clientNumSem");
-    if((clientNumSem = sem_open("clientNumSem", O_CREAT, 0644, 2)) == SEM_FAILED) {
+    sem_unlink("twoClientSem");
+    if((twoClientSem = sem_open("twoClientSem", O_CREAT, 0644, 2)) == SEM_FAILED) {
 	perror("Sem Failed");
 	exit(1);
     }
 
-    sem_unlink("inputNumSem");
-    if((inputNumSem = sem_open("inputNumSem", O_CREAT, 0644, 1)) == SEM_FAILED) {
+    sem_unlink("aSem");
+    if((aSem = sem_open("aSem", O_CREAT, 0644, 1)) == SEM_FAILED) {
+	perror("Sem Failed");
+	exit(1);
+    }
+    
+    sem_unlink("bSem");
+    if((bSem = sem_open("bSem", O_CREAT, 0644, 0)) == SEM_FAILED) {
 	perror("Sem Failed");
 	exit(1);
     }
 
-    sem_unlink("waitClientSem");
-    if((waitClientSem = sem_open("waitClientSem", O_CREAT, 0644, 0)) == SEM_FAILED) {
+    sem_unlink("clientInputSem");
+    if((clientInputSem = sem_open("clientInputSem", O_CREAT, 0644, 0)) == SEM_FAILED) {
 	perror("Sem Failed");
 	exit(1);
     }
 
     sem_unlink("waitServerPrintSem");
     if((waitServerPrintSem = sem_open("waitServerPrintSem", O_CREAT, 0644, 0)) == SEM_FAILED) {
+	perror("Sem Failed");
+	exit(1);
+    }
+    
+    sem_unlink("allReadyToStartSem");
+    if((allReadyToStartSem = sem_open("allReadyToStartSem", O_CREAT, 0644, 0)) == SEM_FAILED) {
 	perror("Sem Failed");
 	exit(1);
     }
@@ -129,9 +143,18 @@ int main(int argc, char** argv)
     printf("        Game Start       \n");
     printf("=========================\n");
 
+    sem_post(allReadyToStartSem);
+    sem_post(allReadyToStartSem);
+
 
     while(1) {
-	sem_wait(waitClientSem);
+	sem_wait(clientInputSem);
+	/*
+	if(strike == 3) {
+	    printf("Game Over!!\n");
+	    return 0;
+	}
+	*/
 
 	printf("userNum : %d\n",ptr[0]);
 	printf("ranNum : %d\n",ranNum);
@@ -171,8 +194,9 @@ int main(int argc, char** argv)
 	    ptr2[0] = strike;
 	    ptr2[1] = ball;
 	}
+	ptr2[2] = ptr[1]; // save pid
+	ptr2[3] = ptr[0]; // save userNum
 	sem_post(waitServerPrintSem);
-
     }
 
     getchar();
