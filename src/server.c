@@ -32,6 +32,7 @@ int main(int argc, char** argv)
     sem_t* clientInputSem;
     sem_t* waitServerPrintSem;
     sem_t* allReadyToStartSem;
+    sem_t* finishSem;
 
     int semVal;
 
@@ -76,9 +77,15 @@ int main(int argc, char** argv)
 	perror("Sem Failed");
 	exit(1);
     }
-    
+
     sem_unlink("bSem");
     if((bSem = sem_open("bSem", O_CREAT, 0644, 0)) == SEM_FAILED) {
+	perror("Sem Failed");
+	exit(1);
+    }
+    
+    sem_unlink("finishSem");
+    if((finishSem = sem_open("finishSem", O_CREAT, 0644, 0)) == SEM_FAILED) {
 	perror("Sem Failed");
 	exit(1);
     }
@@ -94,17 +101,17 @@ int main(int argc, char** argv)
 	perror("Sem Failed");
 	exit(1);
     }
-    
+
     sem_unlink("allReadyToStartSem");
     if((allReadyToStartSem = sem_open("allReadyToStartSem", O_CREAT, 0644, 0)) == SEM_FAILED) {
 	perror("Sem Failed");
 	exit(1);
     }
 
-/*
-    sem_getvalue(startSem, &semVal);
-    printf("startSem : %d\n",semVal);
-    */
+    /*
+       sem_getvalue(startSem, &semVal);
+       printf("startSem : %d\n",semVal);
+     */
 
     ranNum = randomGenerator();
     temp = ranNum;
@@ -120,23 +127,23 @@ int main(int argc, char** argv)
     }
     puts("");
 
-    
+
     sem_wait(startSem);
     printf("Client hi\n");
 
 
     /*
-    sem_getvalue(startSem, &semVal);
-    printf("startSem : %d\n",semVal);
-    */
+       sem_getvalue(startSem, &semVal);
+       printf("startSem : %d\n",semVal);
+     */
 
     sem_wait(startSem);
 
     printf("Client hi\n");
     /*
-    sem_getvalue(startSem, &semVal);
-    printf("startSem : %d\n",semVal);
-    */
+       sem_getvalue(startSem, &semVal);
+       printf("startSem : %d\n",semVal);
+     */
 
     /* Starting game */
     printf("=========================\n");
@@ -146,18 +153,10 @@ int main(int argc, char** argv)
     sem_post(allReadyToStartSem);
     sem_post(allReadyToStartSem);
 
-
     while(1) {
-	sem_wait(clientInputSem);
-	/*
-	if(strike == 3) {
-	    printf("Game Over!!\n");
-	    return 0;
-	}
-	*/
 
-	printf("userNum : %d\n",ptr[0]);
-	printf("ranNum : %d\n",ranNum);
+	sem_wait(clientInputSem);
+
 	userNum = ptr[0];
 	temp = userNum;
 	i=2;
@@ -196,12 +195,19 @@ int main(int argc, char** argv)
 	}
 	ptr2[2] = ptr[1]; // save pid
 	ptr2[3] = ptr[0]; // save userNum
+	if(strike == 3) {
+	    ptr2[4] = ptr[1]; // save winner pid
+	}
+	printf("[%d] %d : %d strike, %d ball\n",ptr2[2],ptr2[3],strike,ball);
+
 	sem_post(waitServerPrintSem);
+	if(strike == 3) {
+	    sem_wait(finishSem);
+	    break;
+	}
     }
 
-    getchar();
-
-
+    printf("\n%d win!!\n",ptr2[4]);
 
     sem_close(startSem);
     exit(0);

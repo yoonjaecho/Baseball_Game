@@ -22,6 +22,7 @@ int main(int argc, char** argv)
     sem_t* twoClientSem = sem_open("twoClientSem", 0);
     sem_t* aSem = sem_open("aSem", 0);
     sem_t* bSem = sem_open("bSem", 0);
+    sem_t* finishSem = sem_open("finishSem", 0);
     sem_t* clientInputSem = sem_open("clientInputSem", 0);
     sem_t* waitServerPrintSem = sem_open("waitServerPrintSem", 0);
     sem_t* allReadyToStartSem = sem_open("allReadyToStartSem", 0);
@@ -29,9 +30,6 @@ int main(int argc, char** argv)
     int semVal;
 
     int userNum;
-
-    int winCheck;
-
 
     if((fd = open("input.txt", O_RDWR, 0666)) < 0) {
 	perror("File open error");
@@ -53,12 +51,6 @@ int main(int argc, char** argv)
 	exit(1);
     }
 
-    /*
-       sem_getvalue(aSem, &semVal);
-       printf("aSem : %d\n",semVal);
-     */
-
-
     sem_getvalue(twoClientSem, &semVal);
 
     if(!semVal) {
@@ -78,7 +70,6 @@ int main(int argc, char** argv)
     sem_post(startSem);
     sem_wait(allReadyToStartSem);
 
-    winCheck = 0;
 
     while(1) {
 
@@ -88,13 +79,14 @@ int main(int argc, char** argv)
 
 	    /* print */
 	    if(ptr2[0] == 3) {
-		printf("[%d] %d : %d strike, %d ball\n",ptr2[2], ptr2[3], ptr2[0], ptr2[1]);
-		if(ptr2[3] == getpid()) {
+		printf("[%d] %d : %d strike, %d ball\n\n",ptr2[2], ptr2[3], ptr2[0], ptr2[1]);
+		if(ptr2[2] == getpid()) {
 		    printf("You Win !!\n");
 		} else {
 		    printf("You Lose !!\n");
 		}
-		ptr2[4] = 1;
+		sem_post(finishSem);
+		break;
 	    } else {
 		printf("[%d] %d : %d strike, %d ball\n",ptr2[2], ptr2[3], ptr2[0], ptr2[1]);
 	    }
@@ -107,7 +99,7 @@ int main(int argc, char** argv)
 	    sem_wait(aSem);
 
 	    /* input */
-	    printf("Input Number(100 - 999) : ");
+	    printf("\nInput Number(100 - 999) : ");
 	    scanf("%d",&userNum);
 	    ptr[0] = userNum;
 	    ptr[1] = getpid();
@@ -120,7 +112,14 @@ int main(int argc, char** argv)
 
 	    /* print */
 	    if(ptr2[0] == 3) {
-		printf("[%d] %d : %d strike, %d ball\n",ptr2[2], ptr2[3], ptr2[0], ptr2[1]);
+		printf("[%d] %d : %d strike, %d ball\n\n",ptr2[2], ptr2[3], ptr2[0], ptr2[1]);
+		if(ptr2[2] == getpid()) {
+		    printf("You Win !!\n");
+		} else {
+		    printf("You Lose !!\n");
+		}
+		sem_post(finishSem);
+		break;
 	    } else {
 		printf("[%d] %d : %d strike, %d ball\n",ptr2[2], ptr2[3], ptr2[0], ptr2[1]);
 	    }
@@ -130,7 +129,6 @@ int main(int argc, char** argv)
 	}
 
     }
-
 
     close(fd);
     close(fd2);
