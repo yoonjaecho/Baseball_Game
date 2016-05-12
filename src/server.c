@@ -208,6 +208,9 @@ int main(int argc, char** argv)
 
     printf("\n%d win!!\n",ptr2[4]);
 
+    sem_wait(twoClientSem);
+    sem_wait(twoClientSem);
+
     sem_close(startSem);
     exit(0);
 }
