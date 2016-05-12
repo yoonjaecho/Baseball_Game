@@ -127,7 +127,6 @@ int main(int argc, char** argv)
     }
     puts("");
 
-
     sem_wait(startSem);
     printf("Client hi\n");
 

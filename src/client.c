@@ -52,7 +52,6 @@ int main(int argc, char** argv)
     }
 
     sem_getvalue(twoClientSem, &semVal);
-
     if(!semVal) {
 	printf("You can't enter this room! \n");
 	exit(1);
