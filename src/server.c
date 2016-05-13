@@ -108,11 +108,6 @@ int main(int argc, char** argv)
 	exit(1);
     }
 
-    /*
-       sem_getvalue(startSem, &semVal);
-       printf("startSem : %d\n",semVal);
-     */
-
     ranNum = randomGenerator();
     temp = ranNum;
     i=2;
@@ -130,19 +125,9 @@ int main(int argc, char** argv)
     sem_wait(startSem);
     printf("Client hi\n");
 
-
-    /*
-       sem_getvalue(startSem, &semVal);
-       printf("startSem : %d\n",semVal);
-     */
-
     sem_wait(startSem);
 
     printf("Client hi\n");
-    /*
-       sem_getvalue(startSem, &semVal);
-       printf("startSem : %d\n",semVal);
-     */
 
     /* Starting game */
     printf("=========================\n");
